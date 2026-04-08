@@ -2,6 +2,8 @@
 
 This chapter covers the configuration of the primary OpenStack services on the controller node. These services manage images, resource placement, compute orchestration, and networking.
 
+Run the [following script](../../scripts/core_controllers.sh) to configure the following services.
+
 ## 4.1 Glance (Image Service)
 
 The Image Service allows users to discover, register, and retrieve virtual machine images.

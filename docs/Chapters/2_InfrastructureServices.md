@@ -6,7 +6,7 @@ This chapter details the configuration of the supporting services that provide t
 
 OpenStack services use a SQL database to store information. MariaDB is the recommended choice for this deployment.
 
-Modify the file /etc/mysql/mariadb.conf.d/99-openstack.cnf and add the following parameters under the [mysqld] section :
+Modify the file `/etc/mysql/mariadb.conf.d/99-openstack.cnf` and add the following parameters under the `[mysqld]` section :
 
 ```Ini, TOML
 [mysqld]
@@ -42,7 +42,7 @@ You must create individual databases and grant permissions for each OpenStack se
 
 ** Note: Ensure you grant privileges for both localhost and the wildcard % for every service user.
 
-You can run the script `database_creation.sh` to create the databases:
+You can run the script [`database_creation.sh`](../../scripts/database_creation.sh) to create the databases:
 
 - Set Passwords: Edit the variables at the top (KEYSTONE_DBPASS, etc.) with your specific credentials .
 - Make it executable: Run chmod +x setup_databases.sh.
@@ -56,31 +56,45 @@ You can run the script `database_creation.sh` to create the databases:
 
 OpenStack services use RabbitMQ to coordinate operations and status information between nodes.
 
-- Add User: sudo rabbitmqctl add_user openstack <RABBIT_PASS>.
-- Set Permissions: sudo rabbitmqctl set_permissions openstack ".*" ".*" ".*".
+- Add User: `sudo rabbitmqctl add_user openstack <RABBIT_PASS>`.
+- Set Permissions: `sudo rabbitmqctl set_permissions openstack ".*" ".*" ".*"`.
 
 ### Memcached (Caching)
 
 The Identity service (Keystone) uses Memcached to cache tokens and improve performance.
 
-- Modify /etc/memcached.conf and update the -l (listen) parameter to <ip_controlador> .
-- Restart the service: sudo service memcached restart.
+- Add the following line to `/etc/memcached.conf`: `-l <ip_controlador>`.
+- Restart the service: `sudo service memcached restart`.
 
 ### ETCD (Distributed Key-Value Store)
 
 ETCD is used by OpenStack for distributed locking and coordination.
 
-- Modify /etc/default/etcd with the following cluster settings :
+- Modify `/etc/default/etcd` with the following settings :
 
-    - ETCD_NAME="controller"
-    - ETCD_INITIAL_CLUSTER="controller=http://<ip_controlador>:2380"
-    - ETCD_LISTEN_CLIENT_URLS=http://<ip_controlador>:2379
-    - Enable and restart: `sudo systemctl enable etcd sudo systemctl restart etcd`
+```
+ETCD_NAME="controller" 
+ETCD_DATA_DIR="/var/lib/etcd" 
+ETCD_INITIAL_CLUSTER_STATE="new" 
+ETCD_INITIAL_CLUSTER_TOKEN="etcd-cluster-01" 
+ETCD_INITIAL_CLUSTER="controller=http://<ip_controlador>:2380" 
+ETCD_INITIAL_ADVERTISE_PEER_URLS="http://<ip_controlador>:2380" 
+ETCD_ADVERTISE_CLIENT_URLS="http://<ip_controlador>:2379" 
+ETCD_LISTEN_PEER_URLS="http://0.0.0.0:2380" 
+ETCD_LISTEN_CLIENT_URLS=http://<ip_controlador>:2379
+```
 
-## 2.4 Time Synchronization (Chrony)
+Then run:
+
+```bash
+sudo systemctl enable etcd 
+sudo systemctl restart etcd
+```
+
+### Time Synchronization (Chrony)
 
 Clock synchronization is critical for OpenStack. If the time drifts between the controller and compute nodes, service tokens and instance scheduling will fail.
 
-- Configuration: Edit /etc/chrony/chrony.conf.
-- Network Access: Add the line allow <red de management/mascara> to allow compute nodes to sync with the controller.
+- Configuration: Edit `/etc/chrony/chrony.conf`.
+- Network Access: Add the line `allow <red de management/mascara>` to allow compute nodes to sync with the controller.
 - Restart: `sudo systemctl restart chrony`
