@@ -20,7 +20,7 @@ if ! grep -q "ServerName controller" /etc/apache2/apache2.conf; then
     echo "ServerName controller" | sudo tee -a /etc/apache2/apache2.conf
 fi
 
-# --- 3. Initialize Database and Services --- [cite: 119-123]
+# --- 3. Initialize Database and Services --- 
 echo "Initializing Keystone database and bootstrapping..."
 sudo keystone-manage db_sync
 sudo systemctl restart apache2
@@ -33,7 +33,7 @@ sudo keystone-manage bootstrap --bootstrap-password "$ADMIN_PASS" \
   --bootstrap-public-url http://controller:5000/v3/ \
   --bootstrap-region-id RegionOne
 
-# --- 4. Export Environment Variables --- [cite: 124-130]
+# --- 4. Export Environment Variables --- 
 export OS_PROJECT_DOMAIN_NAME=Default
 export OS_USER_DOMAIN_NAME=Default
 export OS_PROJECT_NAME=admin
@@ -43,7 +43,7 @@ export OS_AUTH_URL=http://controller:5000/v3
 export OS_IDENTITY_API_VERSION=3
 export OS_IMAGE_API_VERSION=2
 
-# --- 5. Create Service Project and Users --- [cite: 131-136]
+# --- 5. Create Service Project and Users --- 
 echo "Creating service project and users..."
 openstack project create --domain default --description "Service Project" service
 
@@ -60,7 +60,7 @@ openstack role add --project service --user placement admin
 openstack role add --project service --user nova admin
 openstack role add --project service --user neutron admin
 
-# --- 6. Create Services and Endpoints --- [cite: 137-163]
+# --- 6. Create Services and Endpoints --- 
 echo "Registering services and creating endpoints..."
 
 
