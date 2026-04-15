@@ -8,6 +8,10 @@ fi
 
 NODE_HOSTNAME=$1
 
+echo "Backing up /etc/hosts..."
+sudo cp /etc/hosts /etc/hosts.bak 
+sudo hostnamectl set-hostname "$NODE_HOSTNAME"
+
 echo "Starting preparation for $NODE_HOSTNAME ..."
 
 sudo hostnamectl set-hostname "$NODE_HOSTNAME"

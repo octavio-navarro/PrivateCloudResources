@@ -16,6 +16,28 @@ NOVA_PASS="<NOVA_PASS>"
 PLACEMENT_PASS="<PLACEMENT_PASS>"
 NEUTRON_PASS="<NEUTRON_PASS>"
 
+# --- 2. Request Data Interface ---
+read -p "Enter the name of the Data Interface (interfaz de datos): " DATA_INT
+
+if [ -z "$DATA_INT" ]; then
+    echo "------------------------------------------------------------"
+    echo "HINT: You can find your network interfaces by running:"
+    echo "      ip link show"
+    echo "Look for a secondary interface (e.g., eth1, ens4) that DOES NOT"
+    echo "have your management IP ($MY_COMPUTE_IP) assigned to it."
+    echo "------------------------------------------------------------"
+    read -p "Please enter the interface name now: " DATA_INT
+fi
+
+# Exit if still empty
+if [ -z "$DATA_INT" ]; then echo "Error: Data interface is required. Exiting."; exit 1; fi
+
+echo "Creating backups of configuration files..."
+sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 
+sudo cp /etc/nova/nova.conf /etc/nova/nova.conf.bak 
+sudo cp /etc/neutron/neutron.conf /etc/neutron/neutron.conf.bak 
+sudo cp /etc/neutron/plugins/ml2/openvswitch_agent.ini /etc/neutron/plugins/ml2/openvswitch_agent.ini.bak 
+
 # --- 3. Chrony Configuration ---
 echo "Configuring Chrony..."
 # Appends the server line to the end of the file using sed 
@@ -89,8 +111,13 @@ sudo sed -i "/^\[securitygroup\]/a enable_security_group = true\nfirewall_driver
 
 echo "Executing services..."
 
-sudo ovs-vsctl add-br br-provider 
-sudo ovs-vsctl add-port br-provider <interface de datos 
+# --- Open vSwitch Initialization  ---
+echo "Setting up OVS bridge 'br-provider' on $DATA_INT..."
+sudo ovs-vsctl add-br br-provider
+sudo ovs-vsctl add-port br-provider "$DATA_INT"
+
+# --- 3. Restart Services  ---
+echo "Restarting Compute and Networking services..."
 sudo systemctl restart nova-compute 
 sudo systemctl restart neutron-openvswitch-agent
 
