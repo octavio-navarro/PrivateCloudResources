@@ -49,7 +49,7 @@ echo "Configuring /etc/nova/nova.conf..."
 NOVA_CONF="/etc/nova/nova.conf"
 
 # [DEFAULT] section 
-sudo sed -i "/^\[DEFAULT\]/a transport_url = rabbit://openstack:$RABBIT_PASS@controller\nmy_ip = $MY_COMPUTE_IP" $NOVA_CONF
+sudo sed -i "/^\[DEFAULT\]/a transport_url = rabbit://openstack:$RABBIT_PASS@controller:5672\nmy_ip = $MY_COMPUTE_IP" $NOVA_CONF
 
 # [service_user] section 
 sudo sed -i "/^\[service_user\]/a \
@@ -66,7 +66,7 @@ password = $NOVA_PASS" $NOVA_CONF
 sudo sed -i "/^\[vnc\]/a \
 enabled = true\n\
 server_listen = 0.0.0.0\n\
-server_proxyclient_address = \$MY_COMPUTE_IP\n\
+server_proxyclient_address = $MY_COMPUTE_IP\n\
 novncproxy_base_url = http://controller:6080/vnc_auto.html" $NOVA_CONF
 
 # [oslo_concurrency] section 
