@@ -32,6 +32,13 @@ fi
 # Exit if still empty
 if [ -z "$DATA_INT" ]; then echo "Error: Data interface is required. Exiting."; exit 1; fi
 
+echo "Updating Netplan for $DATA_INT..."
+# This sed command finds 'ethernets:' and appends the new interface with 4 spaces of indentation
+sudo sed -i "/  ethernets:/a \    $DATA_INT: {}" /etc/netplan/50-cloud-init.yaml
+
+# Apply the netplan changes immediately
+sudo netplan apply
+
 echo "Creating backups of configuration files..."
 sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 
 sudo cp /etc/nova/nova.conf /etc/nova/nova.conf.bak 

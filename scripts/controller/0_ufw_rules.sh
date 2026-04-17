@@ -10,6 +10,8 @@ echo "Applying global access and restriction rules..."
 
 # Rule: 65032/tcp - ALLOW Anywhere
 sudo ufw allow 65032/tcp
+sudo ufw allow 80/tcp
+sudo ufw allow 6080/tcp
 
 # Rule: 22/tcp - DENY Anywhere (Careful!)
 sudo ufw deny 22/tcp
