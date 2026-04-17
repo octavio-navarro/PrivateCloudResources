@@ -1,20 +1,18 @@
 #!/bin/bash
 
 # --- 1. Validate Parameters ---
-if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 <NODE_IP>"
-    echo "Example: $0 192.168.133.1"
+if [ "$#" -ne 5 ]; then
+    echo "Usage: $0 <NODE_IP> <RABBIT_PASS> <NOVA_PASS> <PLACEMENT_PASS> <NEUTRON_PASS>"
+    echo "Example: sudo $0 192.168.133.1 rabbit123 nova123 place123 neut123"
     exit 1
 fi
 
+# Assigning parameters to variables
 MY_COMPUTE_IP=$1
-
-# --- 2. Define Service Passwords ---
-# Ensure these match the values defined in Chapter 1 
-RABBIT_PASS="<RABBIT_PASS>"
-NOVA_PASS="<NOVA_PASS>"
-PLACEMENT_PASS="<PLACEMENT_PASS>"
-NEUTRON_PASS="<NEUTRON_PASS>"
+RABBIT_PASS=$2
+NOVA_PASS=$3
+PLACEMENT_PASS=$4
+NEUTRON_PASS=$5
 
 # --- 2. Request Data Interface ---
 read -p "Enter the name of the Data Interface (interfaz de datos): " DATA_INT
@@ -32,18 +30,19 @@ fi
 # Exit if still empty
 if [ -z "$DATA_INT" ]; then echo "Error: Data interface is required. Exiting."; exit 1; fi
 
+echo "Creating backups of configuration files..."
+sudo cp /etc/netplan/50-cloud-init.yaml /etc/netplan/50-cloud-init.yaml.bak
+sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 
+sudo cp /etc/nova/nova.conf /etc/nova/nova.conf.bak 
+sudo cp /etc/neutron/neutron.conf /etc/neutron/neutron.conf.bak 
+sudo cp /etc/neutron/plugins/ml2/openvswitch_agent.ini /etc/neutron/plugins/ml2/openvswitch_agent.ini.bak 
+
 echo "Updating Netplan for $DATA_INT..."
 # This sed command finds 'ethernets:' and appends the new interface with 4 spaces of indentation
 sudo sed -i "/  ethernets:/a \    $DATA_INT: {}" /etc/netplan/50-cloud-init.yaml
 
 # Apply the netplan changes immediately
 sudo netplan apply
-
-echo "Creating backups of configuration files..."
-sudo cp /etc/chrony/chrony.conf /etc/chrony/chrony.conf.bak 
-sudo cp /etc/nova/nova.conf /etc/nova/nova.conf.bak 
-sudo cp /etc/neutron/neutron.conf /etc/neutron/neutron.conf.bak 
-sudo cp /etc/neutron/plugins/ml2/openvswitch_agent.ini /etc/neutron/plugins/ml2/openvswitch_agent.ini.bak 
 
 # --- 3. Chrony Configuration ---
 echo "Configuring Chrony..."
